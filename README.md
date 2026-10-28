@@ -1,59 +1,60 @@
-# Bust the Ghost Game
+# Bust the Ghost
 
-## Overview
+A Unity/C# probabilistic grid game. A ghost is hidden on a board, sensors return noisy color clues, and the player uses updated location probabilities to choose where to bust.
 
-"Bust the Ghost" is an engaging Unity game where players strategically bust ghosts hidden within a grid. Players must use hints to deduce the ghost's location and successfully bust it. The game offers a mix of strategy, logic, and suspense, utilizing Unity's UI system and custom scripting to create an interactive gaming experience.
+## Gameplay
 
-## Features
+1. Start the sample scene in Unity.
+2. Click tiles in sensing mode to obtain colored clues.
+3. Use the probability display to compare possible ghost locations.
+4. Toggle **Bust**, then choose a tile when ready to make a guess.
+5. Watch the remaining-bust counter; the interface starts with two attempts.
+6. Use the probability toggle to show or hide tile probability text.
 
-- **Dynamic Grid System:** A grid is dynamically generated where the ghost can hide.
-- **Interactive Tiles:** Each tile on the grid can be clicked, triggering game logic to provide hints or bust the ghost.
-- **Probability Visualization:** Probabilities of the ghost's location are displayed on each tile, updating as the game progresses.
-- **Score Tracking:** The game tracks the player's score based on successful and unsuccessful busts.
-- **Bust Management:** Players have a limited number of busts to catch the ghost, requiring careful strategic planning.
+Sensor colors are stochastic clues rather than exact distance labels. The ghost script samples x from 0–10 and y from 0–7, corresponding to an 11 × 8 coordinate range.
 
-## Installation
+## Probability model
 
-To set up the "Bust the Ghost" game, follow these steps:
+`Proba.cs` defines color probabilities for distance buckets 0 through 5. Larger distances are clamped to bucket 5. At distance 0, red has probability 0.90; in the farthest bucket green has probability 0.76. Intermediate buckets favor orange or yellow.
 
-1. **Clone the Repository:**
-   ```bash
-   git clone https://your-repository-url.com
-   ```
+`GridManager` updates posterior tile probabilities after a sensed location. `Tile` handles pointer input and bust/sense interactions. These routines are useful for studying Bayesian-style evidence updates, but the implementation should be checked for normalization and edge cases before using it as a numerical reference.
 
-2. **Open Unity Hub:**
-   Navigate to 'Projects' tab and click on 'Add'. Select the cloned project folder.
+## Open the project
 
-3. **Open the Project:**
-   Double-click the project in Unity Hub to open it in Unity Editor.
+```bash
+git clone https://github.com/AbdelilahNossair/Bust-The-Ghost.git
+```
 
-4. **Build and Run:**
-   Go to 'File' > 'Build Settings'. Click on 'Build and Run' to compile and execute the game.
+The reviewed tree contains `Assets/` and a sample scene but does not include the usual `ProjectSettings/ProjectVersion.txt` or `Packages/manifest.json`. An exact original Unity version therefore cannot be inferred.
 
-## How to Play
+If Unity Hub cannot open the checkout as a complete project:
 
-- **Start the Game:** Launch the game. The grid will be populated with tiles.
-- **Interact with Tiles:** Click on tiles to reveal hints about the ghost’s position.
-- **Use Busts Wisely:** Use the bust button when you think a ghost is in a particular tile. Be mindful of the limited number of busts.
-- **Track the Score:** Each successful bust increases your score, while wrong busts decrease it.
-- **Winning and Losing:** The game ends when you either catch the ghost or run out of busts.
+1. Create a local Unity project with Unity UI support.
+2. Import the repository's `Assets/` folder while preserving `.meta` files.
+3. Open `Assets/Scenes/SampleScene.unity`.
+4. Resolve missing UI/TextMesh Pro dependencies and Inspector references.
+5. Enter Play mode and inspect the Console.
 
-## Code Overview
+Treat editor/package selection as reconstruction work; no specific Unity release is claimed as verified.
 
-- **Bust Script:** Handles the logic for the bust action and toggling the bust state.
-- **Ghost Script:** Randomly assigns the ghost's position at the start.
-- **GridManager Script:** Manages the grid's dimensions and interactions, and initializes the game components.
-- **Tile Script:** Represents each tile on the grid and handles interactions, including displaying probabilities and reacting to busts.
+## Script map
 
-## Dependencies
+| File | Responsibility |
+| --- | --- |
+| `Assets/Ghost.cs` | Random hidden position |
+| `Assets/GridManager.cs` | Grid creation, counters, distance helper, posterior updates |
+| `Assets/Tile.cs` | Tile construction, pointer interaction, visual feedback |
+| `Assets/Proba.cs` | Distance-conditioned sensor sampling |
+| `Assets/Sensor.cs` | Probability/color result object |
+| `Assets/Bust.cs` | Bust-mode toggle and UI listener |
+| `Assets/Peep.cs` | Probability-text visibility |
 
-- Unity Editor (Version 2020.3 or later recommended)
-- Standard Unity Modules (e.g., UI, 2D Physics)
+## Scene dependencies
 
-## Contributing
+Scripts look up objects named `Bust`, `Toggle`, and `RemainingBusts`, and probability objects tagged `Proba`. Missing names, tags, or component references can cause null-reference errors. Preserve the sample scene wiring when experimenting.
 
-Interested in contributing? Great! You can help by:
+## Build and manual checks
 
-- Reporting bugs
-- Suggesting new features
-- Improving the codebase or documentation
+First confirm Play mode works, then add the sample scene to the editor's build configuration and select a supported desktop target. Verify sensing, probability visibility, bust mode, a successful guess, and exhausted attempts. Inspect the Console for failed object lookups and confirm probabilities remain finite.
+
+The ghost's position is logged for debugging, so the Console reveals the answer. Random placement is not seeded, and sensor sampling uses rounded integer percentages. No automated tests, packaged executable, verified Unity version, or standalone license file is included. Third-party fonts and TextMesh Pro assets retain their own notices.
